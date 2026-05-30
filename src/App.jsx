@@ -15,7 +15,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+// Fix for mobile browsers blocking sessionStorage
+auth.useDeviceLanguage();
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" });
 
 const TYPES = [
   { id: "note",       label: "Text Note",    icon: "📝", color: "#5DCAA5" },
@@ -61,11 +64,25 @@ function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    getRedirectResult(auth).then(result => {
+      if (result?.user) console.log("Redirect login success:", result.user.email);
+    }).catch(e => {
+      if (e.code !== "auth/no-current-user") {
+        setError(e.message.replace("Firebase: ", "").replace(/\(.*\)/, ""));
+      }
+    });
+  }, []);
+
   async function handleGoogle() {
     setLoading(true); setError("");
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      console.log("Google login success:", result.user.email);
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        await signInWithRedirect(auth, googleProvider);
+      } else {
+        await signInWithPopup(auth, googleProvider);
+      }
     } catch (e) {
       console.error("Google login error:", e);
       setError(e.message.replace("Firebase: ", "").replace(/\(.*\)/, ""));

@@ -1,5 +1,9 @@
 {
   "appId": "com.pythonvault.app",
   "appName": "Python Vault",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "url": "https://python-vault-one.vercel.app",
+    "cleartext": true
+  }
 }

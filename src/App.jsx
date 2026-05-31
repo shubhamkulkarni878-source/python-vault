@@ -65,27 +65,11 @@ function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    getRedirectResult(auth).then(result => {
-      if (result?.user) console.log("Redirect login success:", result.user.email);
-    }).catch(e => {
-      if (e.code !== "auth/no-current-user") {
-        setError(e.message.replace("Firebase: ", "").replace(/\(.*\)/, ""));
-      }
-    });
-  }, []);
-
   async function handleGoogle() {
     setLoading(true); setError("");
     try {
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
-        await signInWithRedirect(auth, googleProvider);
-      } else {
-        await signInWithPopup(auth, googleProvider);
-      }
+      await signInWithRedirect(auth, googleProvider);
     } catch (e) {
-      console.error("Google login error:", e);
       setError(e.message.replace("Firebase: ", "").replace(/\(.*\)/, ""));
       setLoading(false);
     }
@@ -349,16 +333,7 @@ export default function App() {
   const [filterType, setFilterType] = useState("all");
 
   useEffect(() => {
-    // Handle Google redirect result first
-    getRedirectResult(auth).then(result => {
-      if (result?.user) {
-        console.log("Redirect result user:", result.user.email);
-      }
-    }).catch(e => console.error("Redirect error:", e));
-
-    // Then listen for auth state
     const unsub = onAuthStateChanged(auth, async (u) => {
-      console.log("Auth state changed:", u?.email);
       setUser(u);
       setAuthLoading(false);
       if (u) {

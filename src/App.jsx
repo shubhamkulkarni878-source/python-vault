@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from "firebase/firestore";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, browserLocalPersistence, setPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD2SpuTCJyh8b6Y6Kucu72hLR0tTHVLPm8",
@@ -15,8 +15,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-// Fix for mobile browsers blocking sessionStorage
 auth.useDeviceLanguage();
+// Keep user logged in permanently
+setPersistence(auth, browserLocalPersistence);
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
 
@@ -348,6 +349,14 @@ export default function App() {
   const [filterType, setFilterType] = useState("all");
 
   useEffect(() => {
+    // Handle Google redirect result first
+    getRedirectResult(auth).then(result => {
+      if (result?.user) {
+        console.log("Redirect result user:", result.user.email);
+      }
+    }).catch(e => console.error("Redirect error:", e));
+
+    // Then listen for auth state
     const unsub = onAuthStateChanged(auth, async (u) => {
       console.log("Auth state changed:", u?.email);
       setUser(u);

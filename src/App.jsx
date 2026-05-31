@@ -150,26 +150,39 @@ function LoginPage() {
               <button onClick={() => { setStep("main"); setError(""); }} style={{ ...S.btnIcon, marginBottom: 12, fontSize: 18, color: "#8892a4" }}>← Back</button>
               <p style={{ fontSize: 13, color: "#8892a4", margin: "0 0 14px" }}>{email}</p>
 
-              <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-                {["login", "register"].map(m => (
-                  <button key={m} onClick={() => setEmailMode(m)} style={{
-                    flex: 1, padding: "7px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 500,
-                    background: emailMode === m ? "#5DCAA5" : "#1e2535",
-                    color: emailMode === m ? "#fff" : "#8892a4"
-                  }}>{m === "login" ? "Login" : "Register"}</button>
-                ))}
-              </div>
-
-              <input value={password} onChange={e => setPassword(e.target.value)} placeholder="Password"
+                  <input value={password} onChange={e => setPassword(e.target.value)} placeholder="Password"
                 type="password" style={{ ...S.input, marginBottom: 10, borderRadius: 10, padding: "12px 14px", fontSize: 14 }}
                 onKeyDown={e => e.key === "Enter" && handleEmail()} />
 
               <button onClick={handleEmail} disabled={loading} style={{
                 width: "100%", padding: "12px", borderRadius: 10, border: "none",
                 background: "#5DCAA5", color: "#fff", fontSize: 15, fontWeight: 500,
-                cursor: "pointer", opacity: loading ? 0.7 : 1
+                cursor: "pointer", opacity: loading ? 0.7 : 1, marginBottom: 10
               }}>
                 {loading ? "Please wait..." : emailMode === "login" ? "🔓 Login" : "✅ Create Account"}
+              </button>
+
+              <button onClick={() => setEmailMode(emailMode === "login" ? "register" : "login")} style={{
+                width: "100%", padding: "10px", borderRadius: 10, border: "1px solid #2a2f3e",
+                background: "transparent", color: "#8892a4", fontSize: 13, cursor: "pointer"
+              }}>
+                {emailMode === "login" ? "Don't have account? Register" : "Already have account? Login"}
+              </button>
+
+              <button onClick={async () => {
+                if (!email) { setError("Enter your email first"); return; }
+                const { sendPasswordResetEmail } = await import("firebase/auth");
+                try {
+                  await sendPasswordResetEmail(auth, email);
+                  setError("✅ Password reset email sent! Check your inbox.");
+                } catch(e) {
+                  setError(e.message.replace("Firebase: ", "").replace(/\(.*\)/, ""));
+                }
+              }} style={{
+                width: "100%", padding: "8px", borderRadius: 10, border: "none",
+                background: "transparent", color: "#5DCAA5", fontSize: 12, cursor: "pointer", marginTop: 4
+              }}>
+                Forgot password?
               </button>
             </>
           )}
